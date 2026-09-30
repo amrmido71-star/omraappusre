@@ -1,0 +1,115 @@
+import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../core/theme/app_colors.dart';
+import '../l10n/translations.dart';
+
+class BottomNavItemData {
+  final FaIconData icon;
+  final String label;
+  final Color accent;
+  const BottomNavItemData(
+      {required this.icon, required this.label, this.accent = AppColors.blue});
+}
+
+/// Mirrors `.bnav` / `.bi` — the 4-tab bottom bar (العمرة، صمم رحلتك،
+/// لقطات، المزيد). The "العمرة" tab highlights green, the rest blue.
+/// A search button sits in the middle; it isn't a tab — it pushes the
+/// search screen via [onSearchTap] and never becomes "selected".
+class AppBottomNavBar extends StatelessWidget {
+  static List<BottomNavItemData> get items => [
+        BottomNavItemData(
+            icon: FontAwesomeIcons.kaaba,
+            label: tr('nav.umrah'),
+            accent: AppColors.green),
+        BottomNavItemData(
+            icon: FontAwesomeIcons.wandMagicSparkles, label: tr('nav.design')),
+        BottomNavItemData(
+            icon: FontAwesomeIcons.solidImages, label: tr('nav.photos')),
+        BottomNavItemData(
+            icon: FontAwesomeIcons.ellipsis, label: tr('nav.more')),
+      ];
+
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+  final VoidCallback onSearchTap;
+
+  /// True on the search screen itself: highlights search and no tab.
+  final bool searchActive;
+
+  const AppBottomNavBar(
+      {super.key,
+      required this.currentIndex,
+      required this.onTap,
+      required this.onSearchTap,
+      this.searchActive = false});
+
+  static const _idle = Color(0xFF9CA3AF);
+
+  Widget _item(
+      {required FaIconData icon,
+      required String label,
+      required Color color,
+      required VoidCallback onTap}) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 9, bottom: 11),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FaIcon(icon, size: 22, color: color),
+              const SizedBox(height: 3),
+              Text(label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  )),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border:
+            const Border(top: BorderSide(color: AppColors.border, width: 2)),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, -2))
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            for (var i = 0; i < items.length; i++) ...[
+              if (i == 2)
+                _item(
+                    icon: FontAwesomeIcons.magnifyingGlass,
+                    label: tr('nav.search'),
+                    color: searchActive ? AppColors.green : _idle,
+                    onTap: onSearchTap),
+              _item(
+                  icon: items[i].icon,
+                  label: items[i].label,
+                  color: !searchActive && currentIndex == i
+                      ? items[i].accent
+                      : _idle,
+                  onTap: () => onTap(i)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}

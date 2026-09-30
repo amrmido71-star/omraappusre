@@ -1,0 +1,77 @@
+/// Translation keys for the 6 UmrahResult entries in seed_data.dart.
+/// u1–u3 reuse existing trip.*/company.* keys verbatim (identical Arabic
+/// source text to umrahMuyassara/umrahDhahabiya/umrahEconomy); only the
+/// genuinely new strings for u4–u6 and the two result.type.* values get
+/// keys here.
+const Map<String, Map<String, String>> seedUmrahResultsTranslations = {
+  'ar': {
+    'result.type.vip': 'VIP',
+    'result.type.economy': 'اقتصادية',
+    'result.u4.name': 'عمرة رمضان الخاصة',
+    'result.u4.hotel': 'هيلتون مكة 5★',
+    'result.u5.name': 'العمرة العائلية',
+    'result.u5.hotel': 'موفنبيك مكة 5★',
+    'result.u6.name': 'عمرة الدرجة الأولى',
+    'result.u6.hotel': 'كمبينسكي مكة 5★',
+  },
+  'en': {
+    'result.type.vip': 'VIP',
+    'result.type.economy': 'Economy',
+    'result.u4.name': 'Special Ramadan Umrah',
+    'result.u4.hotel': 'Hilton Makkah 5★',
+    'result.u5.name': 'Family Umrah',
+    'result.u5.hotel': 'Mövenpick Makkah 5★',
+    'result.u6.name': 'First Class Umrah',
+    'result.u6.hotel': 'Kempinski Makkah 5★',
+  },
+  'fr': {
+    'result.type.vip': 'VIP',
+    'result.type.economy': 'Économique',
+    'result.u4.name': 'Omra Spéciale du Ramadan',
+    'result.u4.hotel': 'Hilton Makkah 5★',
+    'result.u5.name': 'Omra Familiale',
+    'result.u5.hotel': 'Mövenpick Makkah 5★',
+    'result.u6.name': 'Omra Première Classe',
+    'result.u6.hotel': 'Kempinski Makkah 5★',
+  },
+  'tr': {
+    'result.type.vip': 'VIP',
+    'result.type.economy': 'Ekonomik',
+    'result.u4.name': 'Özel Ramazan Umresi',
+    'result.u4.hotel': 'Hilton Mekke 5★',
+    'result.u5.name': 'Aile Umresi',
+    'result.u5.hotel': 'Mövenpick Mekke 5★',
+    'result.u6.name': 'Birinci Sınıf Umre',
+    'result.u6.hotel': 'Kempinski Mekke 5★',
+  },
+  'id': {
+    'result.type.vip': 'VIP',
+    'result.type.economy': 'Ekonomis',
+    'result.u4.name': 'Umrah Ramadan Spesial',
+    'result.u4.hotel': 'Hilton Makkah 5★',
+    'result.u5.name': 'Umrah Keluarga',
+    'result.u5.hotel': 'Mövenpick Makkah 5★',
+    'result.u6.name': 'Umrah Kelas Satu',
+    'result.u6.hotel': 'Kempinski Makkah 5★',
+  },
+  'ur': {
+    'result.type.vip': 'VIP',
+    'result.type.economy': 'اقتصادی',
+    'result.u4.name': 'خصوصی رمضان عمرہ',
+    'result.u4.hotel': 'ہلٹن مکہ 5★',
+    'result.u5.name': 'خاندانی عمرہ',
+    'result.u5.hotel': 'موون پک مکہ 5★',
+    'result.u6.name': 'فرسٹ کلاس عمرہ',
+    'result.u6.hotel': 'کیمپنسکی مکہ 5★',
+  },
+  'ms': {
+    'result.type.vip': 'VIP',
+    'result.type.economy': 'Ekonomi',
+    'result.u4.name': 'Umrah Ramadan Istimewa',
+    'result.u4.hotel': 'Hilton Makkah 5★',
+    'result.u5.name': 'Umrah Keluarga',
+    'result.u5.hotel': 'Mövenpick Makkah 5★',
+    'result.u6.name': 'Umrah Kelas Pertama',
+    'result.u6.hotel': 'Kempinski Makkah 5★',
+  },
+};

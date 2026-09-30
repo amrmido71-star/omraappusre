@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1096796770097",
+    "project_id": "omraway-1bb92",
+    "storage_bucket": "omraway-1bb92.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1096796770097:android:ee82f4f4a1dfac83916a10",
+        "android_client_info": {
+          "package_name": "omraway.com"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAK9Nlfww9t6mIRAOD9pI4Mcrq41AC8-nA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

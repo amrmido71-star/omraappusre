@@ -1,0 +1,81 @@
+import 'package:flutter/material.dart';
+import 'screens/umrah/umrah_screen.dart';
+import 'screens/umrah_results/umrah_results_screen.dart';
+import 'screens/design/design_hub_screen.dart';
+import 'screens/photos/photos_screen.dart';
+import 'screens/more/more_screen.dart';
+import 'widgets/bottom_nav_bar.dart';
+import 'data/country_catalog.dart';
+import 'services/location_service.dart';
+import 'state/country_state.dart';
+import 'state/nav_state.dart';
+import 'widgets/country_picker_sheet.dart';
+
+/// Mirrors the `<nav class="bnav">` + the 4 top-level `.pg` pages it
+/// switches between (umrah / design / photos / more).
+class AppShell extends StatefulWidget {
+  const AppShell({super.key});
+
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  void _goToTab(int i) => NavState.tab.value = i;
+
+  @override
+  void initState() {
+    super.initState();
+    NavState.tab.value = 0;
+    // AppShell is re-created (via a locale-keyed `home:` in main.dart) on
+    // every language switch, but CountryState itself is app-lifetime static
+    // state — `detecting` only stays true before the very first detection
+    // attempt ever runs, so this guard prevents re-hitting the geolocation
+    // API on every subsequent language change.
+    if (CountryState.detecting.value) {
+      _detectCountry();
+    }
+  }
+
+  Future<void> _detectCountry() async {
+    final result = await LocationService.detect();
+    final country =
+        result.countryCode == null ? null : CountryCatalog.byCode(result.countryCode!);
+    CountryState.selected.value = country; // stays null if unresolved/unmatched — no silent default
+    // City is deliberately left unset here (meaning "every city in the
+    // country") rather than guessed — the geo API's free-text city name
+    // (e.g. "Riyadh") can't be reliably matched against the real backend
+    // city catalog's already-localized names (e.g. "الرياض") without
+    // false positives, and an unset city is itself a perfectly good
+    // default now that it actually means "no narrowing", not "broken".
+    CountryState.detecting.value = false;
+    if (country == null && mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) openCountryPickerSheet(context);
+      });
+    }
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    final screens = [
+      const UmrahScreen(),
+      const DesignHubScreen(),
+      const PhotosScreen(),
+      const MoreScreen(),
+    ];
+    return ValueListenableBuilder<int>(
+      valueListenable: NavState.tab,
+      builder: (context, index, _) => Scaffold(
+        body: IndexedStack(index: index, children: screens),
+        bottomNavigationBar: AppBottomNavBar(
+          currentIndex: index,
+          onTap: _goToTab,
+          onSearchTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const UmrahResultsScreen())),
+        ),
+      ),
+    );
+  }
+}
