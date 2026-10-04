@@ -55,6 +55,12 @@ import '../../widgets/sub_page_header.dart';
         const Color(0xFFEEE8FF),
         const Color(0xFF7C3AED)
       );
+    case 'trip.announcement':
+      return (
+        FontAwesomeIcons.bullhorn,
+        const Color(0xFFFFF4DC),
+        const Color(0xFFD97706)
+      );
     case 'trip.departure_point_updated':
       return (
         FontAwesomeIcons.locationDot,
