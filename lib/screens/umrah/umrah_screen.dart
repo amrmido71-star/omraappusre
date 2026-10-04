@@ -97,6 +97,7 @@ class _UmrahScreenState extends State<UmrahScreen> {
           name: t.companyName,
           color: AppColors.green,
           letter: t.companyName.isNotEmpty ? t.companyName[0] : '؟',
+          logo: t.companyLogo,
           stars: '★★★★★',
           trips: apiTrips.where((x) => x.companyId == t.companyId).length,
           handle: t.companyName,

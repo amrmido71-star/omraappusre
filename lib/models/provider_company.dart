@@ -9,6 +9,9 @@ class ProviderCompany {
   final String name;
   final Color color;
   final String letter;
+
+  /// Uploaded company logo URL (null → coloured box with [letter]).
+  final String? logo;
   final String stars;
   final int trips;
 
@@ -24,6 +27,7 @@ class ProviderCompany {
     required this.name,
     required this.color,
     required this.letter,
+    this.logo,
     this.stars = '★★★★★',
     this.trips = 0,
     this.handle = '',

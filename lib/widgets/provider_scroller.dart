@@ -70,6 +70,18 @@ class _ProviderCard extends StatelessWidget {
   final VoidCallback? onTap;
   const _ProviderCard({required this.provider, this.onTap});
 
+  Widget _letterBox() => Container(
+        width: 44,
+        height: 44,
+        color: provider.color,
+        alignment: Alignment.center,
+        child: Text(provider.letter,
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w900)),
+      );
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -92,17 +104,15 @@ class _ProviderCard extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-                color: provider.color, borderRadius: BorderRadius.circular(11)),
-            alignment: Alignment.center,
-            child: Text(provider.letter,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900)),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(11),
+            child: (provider.logo ?? '').isNotEmpty
+                ? Image.network(provider.logo!,
+                    width: 44,
+                    height: 44,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => _letterBox())
+                : _letterBox(),
           ),
           const SizedBox(height: 6),
           Text(tr(provider.name),
