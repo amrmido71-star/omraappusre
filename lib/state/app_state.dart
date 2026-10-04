@@ -426,6 +426,18 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  /// تحديثات حجز واحد (تسكين، باص، دفع، تجمّعات الشركة) لصفحة العمرة.
+  Future<List<ApiNotification>> fetchBookingUpdates(int bookingId) async {
+    try {
+      final res = await api.get('/notifications?booking_id=$bookingId') as Map<String, dynamic>;
+      return (res['data'] as List<dynamic>)
+          .map((n) => ApiNotification.fromJson(n as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
   Future<int> fetchUnreadNotificationsCount() async {
     try {
       final res = await api.get('/notifications/unread-count') as Map<String, dynamic>;

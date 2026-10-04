@@ -7,19 +7,20 @@ import 'l10n/translations.dart';
 import 'state/app_state.dart';
 import 'state/locale_state.dart';
 import 'app_shell.dart';
-import 'screens/more/notifications_screen.dart';
 import 'services/live_updates.dart';
+import 'services/notification_router.dart';
 import 'services/push_service.dart';
-
-/// Lets a tapped push notification open the notifications screen from
-/// outside the widget tree.
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await PushService.instance.init();
   LiveUpdates.instance.start();
-  PushService.instance.onTap.listen((_) => _openNotifications());
+  PushService.instance.onTap.listen(openNotificationTarget);
+  PushService.instance.onForeground.listen((m) => showInAppNotification(
+        title: m.notification?.title ?? '',
+        body: m.notification?.body,
+        data: m.data,
+      ));
   runApp(
     ChangeNotifierProvider(
       create: (_) => AppState()..restoreSession(),
@@ -27,14 +28,13 @@ Future<void> main() async {
     ),
   );
   // App launched by tapping a notification while it was fully closed.
-  if (PushService.instance.pendingLaunchTap != null) {
+  final launchTap = PushService.instance.pendingLaunchTap;
+  if (launchTap != null) {
     PushService.instance.pendingLaunchTap = null;
-    WidgetsBinding.instance.addPostFrameCallback((_) => _openNotifications());
+    // Give restoreSession() a moment so the booking request is authenticated.
+    WidgetsBinding.instance.addPostFrameCallback(
+        (_) => Future.delayed(const Duration(milliseconds: 800), () => openNotificationTarget(launchTap)));
   }
-}
-
-void _openNotifications() {
-  navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => const NotificationsScreen()));
 }
 
 class RihlatyApp extends StatelessWidget {

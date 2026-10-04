@@ -3,12 +3,15 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_colors.dart';
+import '../../models/api_booking.dart';
+import '../../models/api_notification.dart';
 import '../../models/order.dart';
 import '../../services/live_updates.dart';
 import '../../state/app_state.dart';
 import '../../widgets/app_toast.dart';
 import '../../l10n/translations.dart';
 import '../../widgets/order_actions.dart';
+import 'notifications_screen.dart' show notificationStyleFor;
 
 /// Mirrors `#orderDetailSheet`. [order] is built from the bookings *list*
 /// endpoint, which omits hotel/bus/room assignment (see ApiBooking's
@@ -18,7 +21,10 @@ import '../../widgets/order_actions.dart';
 /// exists server-side.
 class OrderDetailSheet extends StatefulWidget {
   final Order order;
-  const OrderDetailSheet({super.key, required this.order});
+
+  /// الإشعار اللي فتح الصفحة (من البوب أب أو شاشة الإشعارات) — بيتميّز.
+  final int? highlightNotificationId;
+  const OrderDetailSheet({super.key, required this.order, this.highlightNotificationId});
 
   @override
   State<OrderDetailSheet> createState() => _OrderDetailSheetState();
@@ -31,6 +37,8 @@ class _OrderDetailSheetState extends State<OrderDetailSheet>
 
   late Order _order;
   bool _loadingDetail = true;
+  List<ApiNotification> _updates = [];
+  bool _showAllUpdates = false;
   bool _payingNow = false;
   bool _cancelling = false;
 
@@ -47,12 +55,19 @@ class _OrderDetailSheetState extends State<OrderDetailSheet>
       setState(() => _loadingDetail = false);
       return;
     }
-    final detail = await context.read<AppState>().fetchBookingDetail(apiId);
+    final state = context.read<AppState>();
+    final results = await Future.wait([state.fetchBookingDetail(apiId), state.fetchBookingUpdates(apiId)]);
     if (!mounted) return;
+    final detail = results[0] as ApiBooking?;
     setState(() {
       if (detail != null) _order = detail.toOrder();
+      _updates = results[1] as List<ApiNotification>;
       _loadingDetail = false;
     });
+    final hl = widget.highlightNotificationId;
+    if (hl != null && _updates.any((n) => n.id == hl && !n.isRead)) {
+      state.markNotificationRead(hl);
+    }
   }
 
   Order get order => _order;
@@ -169,6 +184,7 @@ class _OrderDetailSheetState extends State<OrderDetailSheet>
                           color: style.$2)),
                 ])),
             const SizedBox(height: 16),
+            if (_updates.isNotEmpty) _updatesSection(),
             _section(tr('orders.section.trip_info'), FontAwesomeIcons.plane, [
               (tr('orders.field.order_number'), order.id, null),
               (
@@ -301,6 +317,75 @@ class _OrderDetailSheetState extends State<OrderDetailSheet>
           ],
         ),
       ),
+    );
+  }
+
+  /// تحديثات الرحلة: تجمّعات الشركة + تسكين/باص/دفع الخاصة بالحجز ده.
+  Widget _updatesSection() {
+    final hl = widget.highlightNotificationId;
+    var shown = _showAllUpdates ? _updates : _updates.take(3).toList();
+    if (hl != null && !shown.any((n) => n.id == hl)) {
+      shown = [..._updates.where((n) => n.id == hl), ...shown];
+    }
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(12)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          const FaIcon(FontAwesomeIcons.bullhorn, size: 13, color: AppColors.blue),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(tr('orders.section.updates'),
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.text)),
+          ),
+        ]),
+        const SizedBox(height: 10),
+        for (final n in shown) _updateTile(n, highlighted: n.id == hl),
+        if (_updates.length > 3 && !_showAllUpdates)
+          Center(
+            child: TextButton(
+              onPressed: () => setState(() => _showAllUpdates = true),
+              child: Text('${tr('orders.updates.show_all')} (${_updates.length})',
+                  style: const TextStyle(fontSize: 12)),
+            ),
+          ),
+      ]),
+    );
+  }
+
+  Widget _updateTile(ApiNotification n, {required bool highlighted}) {
+    final (icon, bg, fg) = notificationStyleFor(n.type);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: highlighted ? const Color(0xFFFFF8E6) : Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: highlighted ? const Color(0xFFD97706) : const Color(0xFFEDEFF3),
+            width: highlighted ? 1.5 : 1),
+      ),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(9)),
+          alignment: Alignment.center,
+          child: FaIcon(icon, size: 14, color: fg),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(n.title, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.text)),
+            if ((n.body ?? '').isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(n.body!, style: const TextStyle(fontSize: 12, color: AppColors.text, height: 1.5)),
+            ],
+            const SizedBox(height: 4),
+            Text(n.timeAgo, style: const TextStyle(fontSize: 10.5, color: AppColors.muted)),
+          ]),
+        ),
+      ]),
     );
   }
 

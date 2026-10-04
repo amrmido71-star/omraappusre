@@ -34,12 +34,16 @@ class PushService {
 
   final FlutterLocalNotificationsPlugin _local = FlutterLocalNotificationsPlugin();
   final StreamController<Map<String, dynamic>> _taps = StreamController.broadcast();
+  final StreamController<RemoteMessage> _foreground = StreamController.broadcast();
   StreamSubscription<String>? _tokenRefreshSub;
   bool _ready = false;
   String? _registeredToken;
 
   /// بيانات الإشعار اللي المستخدم داس عليه (type, booking_id, trip_id ...).
   Stream<Map<String, dynamic>> get onTap => _taps.stream;
+
+  /// إشعار وصل والتطبيق مفتوح — بيتعرض كبوب أب داخل التطبيق.
+  Stream<RemoteMessage> get onForeground => _foreground.stream;
 
   /// إشعار فتح التطبيق وهو مقفول خالص — بيتقرا مرة واحدة بعد ما الواجهة تجهز.
   Map<String, dynamic>? pendingLaunchTap;
@@ -71,28 +75,10 @@ class PushService {
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(_channel);
 
-    // والتطبيق مفتوح النظام مش بيعرض الإشعار لوحده — بنعرضه إحنا.
+    // والتطبيق مفتوح النظام مش بيعرض الإشعار لوحده — بنعرضه بوب أب جوه
+    // التطبيق (4 ثواني، والضغط عليه يفتح صفحة العمرة).
     FirebaseMessaging.onMessage.listen((message) {
-      final n = message.notification;
-      if (n != null) {
-        _local.show(
-          id: message.messageId.hashCode,
-          title: n.title,
-          body: n.body,
-          notificationDetails: NotificationDetails(
-            android: AndroidNotificationDetails(
-              _channel.id,
-              _channel.name,
-              channelDescription: _channel.description,
-              importance: Importance.high,
-              priority: Priority.high,
-              styleInformation: BigTextStyleInformation(n.body ?? ''),
-            ),
-            iOS: const DarwinNotificationDetails(),
-          ),
-          payload: jsonEncode(message.data),
-        );
-      }
+      if (message.notification != null) _foreground.add(message);
       // Any server-side event -> open screens refresh instantly.
       LiveUpdates.instance.ping();
     });

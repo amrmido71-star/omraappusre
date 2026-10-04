@@ -5,10 +5,11 @@ import '../../core/theme/app_colors.dart';
 import '../../l10n/translations.dart';
 import '../../models/api_notification.dart';
 import '../../services/live_updates.dart';
+import '../../services/notification_router.dart';
 import '../../state/app_state.dart';
 import '../../widgets/sub_page_header.dart';
 
-(FaIconData, Color, Color) _styleFor(String type) {
+(FaIconData, Color, Color) notificationStyleFor(String type) {
   switch (type) {
     case 'booking.confirmed':
     case 'booking.payment_paid':
@@ -127,17 +128,14 @@ class _NotificationsScreenState extends State<NotificationsScreen>
 
   Future<void> _tapNotification(int index) async {
     final n = _notifications[index];
-    if (n.isRead) return;
-    setState(() {
-      _notifications[index] = ApiNotification(
-          id: n.id,
-          type: n.type,
-          title: n.title,
-          body: n.body,
-          isRead: true,
-          timeAgo: n.timeAgo);
-    });
-    await context.read<AppState>().markNotificationRead(n.id);
+    if (!n.isRead) {
+      setState(() => _notifications[index] = n.copyWith(isRead: true));
+      context.read<AppState>().markNotificationRead(n.id);
+    }
+    // إشعار خاص بحجز → يفتح صفحة العمرة مع تمييز الإشعار.
+    if (n.bookingId != null) {
+      await openNotificationTarget({...n.data, 'notification_id': n.id});
+    }
   }
 
   @override
@@ -164,7 +162,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                       const Divider(height: 1, color: AppColors.border),
                   itemBuilder: (context, i) {
                     final n = _notifications[i];
-                    final (icon, bg, color) = _styleFor(n.type);
+                    final (icon, bg, color) = notificationStyleFor(n.type);
                     return GestureDetector(
                       onTap: () => _tapNotification(i),
                       child: Container(
