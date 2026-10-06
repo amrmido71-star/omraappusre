@@ -39,14 +39,23 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build APK (Release)
-        run: flutter build apk --release
+      - name: Generate Release Keystore
+        run: |
+          keytool -genkey -v -keystore android/app/upload-keystore.jks \
+            -alias upload -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass android123 -keypass android123 \
+            -dname "CN=Omraway, OU=Mobile, O=Omraway, L=Mecca, ST=Makkah, C=SA"
 
-      - name: Upload APK Artifact
+      - name: Build APK (Release & Split ABI)
+        run: |
+          flutter build apk --release
+          flutter build apk --release --split-per-abi
+
+      - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: build/app/outputs/flutter-apk/*.apk
           retention-days: 30
 
       - name: Create or Update GitHub Release
@@ -58,7 +67,10 @@ jobs:
           body: |
             ## Automated Build
             - Built automatically by GitHub Actions.
-            - Direct download link for Android APK below.
-          files: build/app/outputs/flutter-apk/app-release.apk
+            - Direct download links for Android APK below:
+              - **app-release.apk**: Universal APK (works on all devices)
+              - **app-arm64-v8a-release.apk**: Optimized for modern 64-bit devices
+              - **app-armeabi-v7a-release.apk**: Optimized for older 32-bit devices
+          files: build/app/outputs/flutter-apk/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
